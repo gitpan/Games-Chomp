@@ -1,0 +1,8 @@
+POSITION:        5 5 TIME:  0 wallclock secs ( 0.00 usr +  0.00 sys =  0.00 CPU)
+POSITION:      10 10 TIME:  0 wallclock secs ( 0.06 usr +  0.00 sys =  0.06 CPU)
+POSITION:      20 20 TIME:  1 wallclock secs ( 0.76 usr +  0.04 sys =  0.80 CPU)
+POSITION:      30 30 TIME:  4 wallclock secs ( 3.76 usr +  0.00 sys =  3.76 CPU)
+POSITION:      40 40 TIME: 12 wallclock secs (12.54 usr +  0.00 sys = 12.54 CPU)
+POSITION:      5 5 5 TIME:  0 wallclock secs ( 0.04 usr +  0.00 sys =  0.04 CPU)
+POSITION:   10 10 10 TIME:  1 wallclock secs ( 0.68 usr +  0.00 sys =  0.68 CPU)
+POSITION:   20 20 20 TIME: 38 wallclock secs (38.17 usr +  0.03 sys = 38.20 CPU)

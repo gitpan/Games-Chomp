@@ -1,0 +1,29 @@
+Games/Chomp version 0.01
+========================
+
+ Play the Chomp game and compute the winning positions for 
+ arbitrary sized board.
+
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+   Perl 5.6
+
+COPYRIGHT AND LICENCE
+
+   Copyright (C) 2002.
+   All rights reserved.
+ 
+   You may distribute under the terms of either the GNU General Public
+   License or the Artistic License, as specified in the Perl README file.
+
+
