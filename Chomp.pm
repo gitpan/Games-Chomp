@@ -6,7 +6,7 @@ use warnings;
 
 use Benchmark;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 my $filename = "chomp.txt"; # hardcoded place to save the positions
@@ -22,6 +22,8 @@ my @loosing_positions = ();   # if you move in such a position you will probably
                  # from a loosing position there is (at least one) way to a winning
                  # posititon
 
+my @edge_position; # a position under which we have solved all the positions
+# and there is no need to keep the loosing positions 
 
 sub new {
     my $self = shift;
@@ -53,16 +55,16 @@ sub run {
 
     my $t0 = new Benchmark;
 
-#    load_file();
+    $self->load_file();
 
-    if (in_winning($pos)) {
+    if ($self->in_winning($pos)) {
 	print "Winning Position\n";
-	display_position($pos);
+	$self->display_position($pos);
 	exit;
     }
-    if (in_loosing($pos)) {
+    if ($self->in_loosing($pos)) {
 	print "Loosing Position\n";
-	display_position($pos);
+	$self->display_position($pos);
 	exit;
     }
     
@@ -70,22 +72,22 @@ sub run {
     $self->resolve($pos);
 
 
-    if (in_winning($pos)) {
+    if ($self->in_winning($pos)) {
 	print "Winning Positions\n";
-	display_position($pos);
-    } elsif (in_loosing($pos)) {
+	$self->display_position($pos);
+    } elsif ($self->in_loosing($pos)) {
 	print "Loosing Position\n";
-	display_position($pos);
+	$self->display_position($pos);
     }
 
     my $t1 = new Benchmark;
     my $td = timediff($t1,$t0);
     print "the code took:",timestr($td),"\n";
 
-#show_all_winning_pos();
-#show_all_loosing_pos();
+# $self->show_all_winning_pos;
+# $self->show_all_loosing_pos();
 
-#save_file();
+    $self->save_file();
 
 }
 
@@ -94,65 +96,90 @@ sub reset {
     
     @winning_positions = ();
     @loosing_positions = ();
-    return 1;
+
+    return 1;  # not really interesting
 }
 
 
 sub resolve {
     my $self = shift;
-
     my $pos = shift;
+    my $spec = shift;
 
-    my @all = all_moves_from_here($pos);
+#    unless ($self->special_position($pos)) {
+	
+    if ($self->in_winning($pos)) {
+	return 1;
+    }
+    if ($self->in_loosing($pos)) {
+	return 0;
+    }
+
+#    unless (defined $spec) {
+#	my $rows = @$pos;
+#	my $cols = $pos->[-1];
+#	foreach my $ep (@edge_positions) {
+#	    if ($ep->{rows} <
+#	$self->resolve();
+#    }
+
+    my @all = $self->all_moves_from_here($pos);
     while (my $p = shift @all) {
 #    print "DEBUG: Lengths: ", scalar @all, "\n";
-	if (in_winning($p)) {
-	    put_in_loosing($pos);
-	    return;
-	} elsif (not in_loosing($p)) {
-	    push @all, $p;
-	    $self->resolve($p);
-	    next;
+	if ($self->resolve($p, 1)) {  # found winning sub position
+	    $self->put_in_loosing($pos);
+	    return 0;
 	}
     }
-    put_in_winning($pos);
+    # all sub positions were loosing
+    $self->put_in_winning($pos);
+    return 1;
 }
 
 
 sub in_winning {
+    my $self = shift;
     my $pos = shift;
 
-#    return 1 if (special_position($pos) eq "win");
+    return 1 if ($self->special_position($pos) eq "win");
 
-    in_group($pos, \@winning_positions);
+    $self->in_group($pos, \@winning_positions);
 }
 
 sub in_loosing {
+    my $self = shift;
     my $pos = shift;
-#    return 1 if (special_position($pos) eq "loose");
+    return 1 if ($self->special_position($pos) eq "loose");
 
-    in_group($pos, \@loosing_positions);
+    $self->in_group($pos, \@loosing_positions);
 }
 
 sub special_position {
+    my $self = shift;
     my $pos = shift;
-    if (@$pos == 1) {   # one liner
-	return ($pos->[0] > 1  ? "win" : "loose");
+
+#    return 0 if $sel
+
+    if (@$pos == 1) {   # one row only
+	return ($pos->[0] == 1  ? "win" : "loose");
     }
-    if (@$pos == 2) {   # two liner
+    if (@$pos == 2) {   # two row
 	return ($pos->[0] == $pos->[1]+1 ? "win" : "loose");
     }
 
+    # 3 or more rows
     if ($pos->[0] == $pos->[1]+1) {    # n, n-1
 	return "loose";
     }
 
     if ($pos->[0] == @$pos) {   # sqare
-	return $pos->[1] == 1 ?   "win" : "loose";
+	return $pos->[1] == 1 ? "win" : "loose";
     }
+    return 0;
 }
 
 sub in_group {
+    my $self = shift;
     my $pos = shift;
     my $group = shift;
 
@@ -167,16 +194,20 @@ POS:foreach my $p (@$group) {
 }
 
 sub show_all_winning_pos {
+    my $self = shift;
+
     print "All Winning Positions:\n";
     foreach my $p (@winning_positions) {
-	display_position($p);
+	$self->display_position($p);
     }
 }
 
 sub show_all_loosing_pos {
+    my $self = shift;
+
     print "All Loosing Positions:\n";
     foreach my $p (@loosing_positions) {
-	display_position($p);
+	$self->display_position($p);
     }
 }
 	
@@ -184,17 +215,20 @@ sub show_all_loosing_pos {
 # separate function so we can hold the winning and loosing positions
 # in any format.
 sub put_in_loosing {
+    my $self = shift;
     my $p = shift;
     push @loosing_positions, $p;
 }
 
 sub put_in_winning {
+    my $self = shift;
     my $p = shift;
     push @winning_positions, $p;
 }
 
 
 sub display_position {
+    my $self = shift;
     my $pos = shift;
 
     foreach my $p (@$pos) {
@@ -207,6 +241,7 @@ sub display_position {
 # and returns a list of all the possible positions that can be reached
 # from here
 sub all_moves_from_here {
+    my $self = shift;
     my $pos = shift;
 
     my @possible=();
@@ -233,6 +268,8 @@ COL:    for (my $col = 0; $col< $pos->[$row]; $col++) {
 
 
 sub load_file {
+    my $self = shift;
+
     return 0 unless (-e $filename);
     open F, $filename or return 0;
     while (my $line = <F>) {
@@ -254,6 +291,8 @@ sub load_file {
 
 
 sub save_file {
+    my $self = shift;
+
     open F, ">", $filename or die "Could not save to file\n";
     foreach my $pos (@winning_positions) {
 	print F join "," , "win", @$pos;
@@ -271,8 +310,6 @@ sub save_file {
 
 1;
 __END__
-# Below is stub documentation for your module. You better edit it!
-
 =head1 NAME
 
 Games::Chomp - Playing Chomp and calculating winning positions
@@ -283,7 +320,9 @@ Games::Chomp - Playing Chomp and calculating winning positions
   my $chomp = new Games::Chomp;
   $chomp->run;
 
+
 =head1 DESCRIPTION
+
 
  Chomp is the name of a mathematical table game with 
  finate number of positions. Though it is easily proven 
@@ -376,6 +415,57 @@ Games::Chomp - Playing Chomp and calculating winning positions
  z
 
  player 1 has to eat the poisoned cube so s/he looses.
+
+
+=head1 METHODS
+
+  use Games::Chomp;
+  my $chomp = new Games::Chomp;
+
+  $chomp->run;
+     ask for position in row-length representation
+     computes all the positions up to that position and
+     saves them in a file called chomp.txt in the local
+     directory.
+     Using run later will use the already calculated
+     positions that were saved in that file.
+
+  $chomp->reset;
+     Empties the list of winning positions kept in memory.
+     The only case you want to use this is if you want to
+     benchmark the module and start from an empty environment.
+
+  $chomp->resolve(POSITION);
+     POSITION is array reference, it is a reference to a row-length 
+     representation.
+     
+     resolve returns 1 if the above position is a winning position
+     and returns 0 if it is a loosing position. As a side effect
+     it *might* compute the 'winningness' of all the positions
+     which are smaller than this one.
+
+  $chomp->show_all_winning_pos
+     prints all the winning positions calculated so far
+     (except the already obvious onces.) in row-length representation.
+
+  $chomp->transpose(POSITION)
+     returns a reference to an array which is a POSITION where
+     the rows and the columns are transposed.
+     given [5,4,3]  it returns [3,3,3,2,1]
+     not implemented yet
+
+=head1 REPRESENTATIONS
+
+ A certain state of the game can be represented in different ways.
+
+ ROW-LENGTH
+ One of the ways I call row-length representation. I use this
+ representation in my implementation. In this representation we
+ give a list of numbers that represent the number of chocolates 
+ in the given row. [5,4,3] is the same as
+     ooooo
+     oooo
+     ooo
 
 =head1 AUTHOR
 

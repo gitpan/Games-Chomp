@@ -1,4 +1,4 @@
-Games/Chomp version 0.01
+Games/Chomp
 ========================
 
  Play the Chomp game and compute the winning positions for 
@@ -13,6 +13,18 @@ To install this module type the following:
    make
    make test
    make install
+
+BENCHMARK
+
+  You can find bechmark.pl in the tar file that will run a few
+  benchmarks and display the results. All computations are
+  run from an environment where no previously calcualted states
+  are but since v0.02 where we use the already know rules
+  to avoid the computation of all the positions.
+
+  There is also a file called BENCHMARK that provide some results
+  I ran on my own computer which is  
+  (Pentium III 700MHz  256 Mb linux kernel 2.4.18 Perl 5.6.1)
 
 DEPENDENCIES
 

@@ -1,5 +1,13 @@
 Revision history for Perl extension Games::Chomp.
 
-0.01  2002 08 15
+0.02  2002.08.16
+      - added more tests
+      - improved speed by adding functions that can calculate
+        the 'winningness' of certain positions governed by simle
+	rules.
+      - make more methods available including the resolve method
+      - add documentation of some of the methods.
+
+0.01  2002.08.15
       - original version everything new in this version
 
